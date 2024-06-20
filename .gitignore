@@ -1,0 +1,4 @@
+eidc_embeddings.csv
+.venv/
+chroma_data/
+chroma.log

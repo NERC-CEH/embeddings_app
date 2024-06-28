@@ -2,6 +2,6 @@ eidc_embeddings.csv
 .venv/
 chroma_data/
 chroma.log
-__pycahce__/
 coverage.xml
-.coverage/
+.coverage
+**/__pycache__/

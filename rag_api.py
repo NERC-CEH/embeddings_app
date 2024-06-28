@@ -13,29 +13,34 @@ def create_pipeline():
     document_store = ChromaDocumentStore(
         collection_name="eidc-data", persist_path="haystack-chroma-data"
     )
-    retriever = ChromaQueryTextRetriever(document_store, top_k=1)
+    retriever = ChromaQueryTextRetriever(document_store, top_k=2)
     print("Creating prompt template...")
     template = """
     Given the following information, answer the question.
+
+    Question: {{query}}
 
     Context:
     {% for document in documents %}
         {{ document.content }}
     {% endfor %}
 
-    Question: {{query}}
     Answer:
     """
+
     prompt_builder = PromptBuilder(template=template)
-    model_name = "google/flan-t5-large"
+    models = [
+        "openai-community/gpt2",
+        "google/flan-t5-large",
+        "MBZUAI/LaMini-Flan-T5-783M",
+        "google/long-t5-tglobal-base",
+    ]
+    model_name = models[1]
     print(f"Setting up model ({model_name})...")
     llm = HuggingFaceLocalGenerator(
         model=model_name,
         task="text2text-generation",
-        generation_kwargs={
-            "max_new_tokens": 100,
-            "temperature": 0.9,
-        },
+        generation_kwargs={"max_new_tokens": 100, "temperature": 0.9},
     )
     print("Warming up model...")
     llm.warm_up()
@@ -60,7 +65,11 @@ def read_root():
 
 @app.get("/query")
 def query(query: Union[str, None] = None):
-    results = pipeline.run({"retriever": {"query": query, "top_k": 2},
-                        "prompt_builder": {"query": query},
-                        "llm":{"generation_kwargs": {"max_new_tokens": 350}}})
+    results = pipeline.run(
+        {
+            "retriever": {"query": query, "top_k": 2},
+            "prompt_builder": {"query": query},
+            "llm": {"generation_kwargs": {"max_new_tokens": 100}},
+        }
+    )
     return {"query": query, "results": results}

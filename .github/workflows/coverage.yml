@@ -1,0 +1,27 @@
+name: 'coverage'
+on:
+    pull_request:
+        branches:
+            - master
+            - main
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - name: Install python
+          uses: actions/setup-python@v1
+          with:
+            python-version: 3.12
+        - name: Install dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+        - name: Run pytest
+          run: python -m pytest --cov=rag --cov-report xml:coverage.xml tests
+        - name: Test coverage
+          uses: orgoro/coverage@v3.1
+          with:
+              coverageFile: coverage.xml
+              token: ${{ secrets.GITHUB_TOKEN }}
+          

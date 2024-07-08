@@ -9,12 +9,16 @@ import plotly.graph_objects as go
 import chromadb
 import pandas as pd
 
-cdb = None 
+CDB = None
 
-def get_chroma_client():
-    if cdb is None:
-        cdb = chromadb.HttpClient(host="localhost", port=8000)
-    return cdb
+
+def get_chroma_client() -> chromadb.Client:
+    """
+    Retrieve or instantiate the chromadb client.
+    """
+    if CDB is None:
+        CDB = chromadb.HttpClient(host="localhost", port=8000)
+    return CDB
 
 
 @st.cache_data

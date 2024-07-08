@@ -1,12 +1,14 @@
 """
 API that serves up a RAG pipeline for performing queries on a chroma instance.
 """
+
+from typing import Union
+
 from haystack_integrations.document_stores.chroma import ChromaDocumentStore
 from haystack_integrations.components.retrievers.chroma import ChromaQueryTextRetriever
 from haystack.components.builders import PromptBuilder
 from haystack.components.generators import HuggingFaceLocalGenerator
 from haystack import Pipeline
-from typing import Union
 
 from fastapi import FastAPI
 
@@ -17,8 +19,8 @@ def create_pipeline():
     """
     print("Setting up chroma db...")
     document_store = ChromaDocumentStore(
-        #collection_name="eidc-data", persist_path="haystack-chroma-data"
-        collection_name="eidc_datasets", persist_path="chroma-data"
+        collection_name="eidc_datasets",
+        persist_path="chroma-data",
     )
     retriever = ChromaQueryTextRetriever(document_store, top_k=2)
     print("Creating prompt template...")
@@ -65,21 +67,16 @@ pipeline = create_pipeline()
 app = FastAPI()
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
 @app.get("/query")
-def query(query: Union[str, None] = None):
+def query(query_string: Union[str, None] = None):
     """
     Query the API with a prompt. This method will run the RAG pipeline and return the result.
     """
     results = pipeline.run(
         {
-            "retriever": {"query": query, "top_k": 2},
-            "prompt_builder": {"query": query},
+            "retriever": {"query": query_string, "top_k": 2},
+            "prompt_builder": {"query": query_string},
             "llm": {"generation_kwargs": {"max_new_tokens": 100}},
         }
     )
-    return {"query": query, "results": results}
+    return {"query": query_string, "results": results}

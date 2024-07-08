@@ -1,3 +1,6 @@
+"""
+API that serves up a RAG pipeline for performing queries on a chroma instance.
+"""
 from haystack_integrations.document_stores.chroma import ChromaDocumentStore
 from haystack_integrations.components.retrievers.chroma import ChromaQueryTextRetriever
 from haystack.components.builders import PromptBuilder
@@ -9,9 +12,13 @@ from fastapi import FastAPI
 
 
 def create_pipeline():
+    """
+    Create the RAG pipeline.
+    """
     print("Setting up chroma db...")
     document_store = ChromaDocumentStore(
-        collection_name="eidc-data", persist_path="haystack-chroma-data"
+        #collection_name="eidc-data", persist_path="haystack-chroma-data"
+        collection_name="eidc_datasets", persist_path="chroma-data"
     )
     retriever = ChromaQueryTextRetriever(document_store, top_k=2)
     print("Creating prompt template...")
@@ -65,6 +72,9 @@ def read_root():
 
 @app.get("/query")
 def query(query: Union[str, None] = None):
+    """
+    Query the API with a prompt. This method will run the RAG pipeline and return the result.
+    """
     results = pipeline.run(
         {
             "retriever": {"query": query, "top_k": 2},

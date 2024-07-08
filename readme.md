@@ -12,10 +12,12 @@ First install required packages from `requirements.txt`:
 ```bash
 pip install -r requirements.txt
 ```
+
+# Visualisation App
 ## Startup Chroma
 The [Chroma](https://www.trychroma.com/) database should be started in server mode. This database stores the embeddings used in the demo. To start:
 ```bash
-chroma run --path chroma_data
+chroma run --path chroma-data
 ```
 This will start the database server and store the data in `chroma_data`. By default the database should run on port `8000`.
 
@@ -36,8 +38,29 @@ This script assumes you are using a python virtual environemnt and that the data
 ## Run Streamlit
 The application runs using [Streamlit](https://streamlit.io/). To start it up use:
 ```bash
-streamlit run embeddings_app.py
+streamlit run visualisation/visualisation_app.py
 ```
 
 ## Connect
 The demo should automatically open in you browser when you run streamlit. If it does not, connect using: [http://localhost:8501](http://localhost:8501).
+
+# RAG (Retrieval Augmented Generation) App
+This application run a retrieval augmented generative pipeline using [Haystack](https://haystack.deepset.ai/), [Chroma](https://www.trychroma.com/), [FastAPI](https://fastapi.tiangolo.com/) and a simple user interface using [Streamlit](https://streamlit.io/).
+
+## Setup
+Ensure you have followed the steps listed above to start Chroma and upload the EIDC embeddings data. You can then stop the Chroma server and follow the steps below.
+
+## Start FastAPI
+First start up the RAG API:
+```shell
+fastapi dev rag/rag_api.py
+```
+This hosts the haystack pipeline and will access the data in chromadb directly.
+
+## Run Streamlit
+To start the streamlit UI:
+```shell
+streamlit run rag/rag_app.py
+```
+
+The user interface should then be available at [http://localhost:8501](http://localhost:8501).

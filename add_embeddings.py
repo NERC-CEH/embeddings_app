@@ -34,9 +34,11 @@ if __name__ == '__main__':
                 TOPIC_HEADER: a[4],
                 KEY_HEADER: a[5]} for a in metadatas]
     doc_ids = [f'doc_{idx:04d}' for idx in df.index.values.tolist()]
+    docs = list(map('\n'.join, zip(df[TITLE_HEADER].to_list(), df[DESC_HEADER].to_list(), df[LIN_HEADER].to_list())))
     print('Adding data...')
     collection.add(
         embeddings=embeddings,
         metadatas=metadatas,
-        ids=doc_ids
+        ids=doc_ids,
+        documents=docs
     )

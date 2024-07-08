@@ -9,7 +9,12 @@ import plotly.graph_objects as go
 import chromadb
 import pandas as pd
 
-cdb = chromadb.HttpClient(host="localhost", port=8000)
+cdb = None 
+
+def get_chroma_client():
+    if cdb is None:
+        cdb = chromadb.HttpClient(host="localhost", port=8000)
+    return cdb
 
 
 @st.cache_data
@@ -17,7 +22,7 @@ def get_embeddings(collection_name: str) -> pd.DataFrame:
     """
     Retrieve document embeddings from chroma database.
     """
-    collection = cdb.get_collection(collection_name)
+    collection = get_chroma_client().get_collection(collection_name)
     result = collection.get(include=["metadatas"])
     reduced_embeddings = [
         literal_eval(metadata["umap_reduced"]) for metadata in result["metadatas"]

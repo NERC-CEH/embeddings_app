@@ -3,67 +3,27 @@ API that serves up a RAG pipeline for performing queries on a chroma instance.
 """
 
 from typing import Union
-
-from haystack_integrations.document_stores.chroma import ChromaDocumentStore
-from haystack_integrations.components.retrievers.chroma import ChromaQueryTextRetriever
-from haystack.components.builders import PromptBuilder
-from haystack.components.generators import HuggingFaceLocalGenerator
 from haystack import Pipeline
-
 from fastapi import FastAPI
 
 
-def create_pipeline():
+def stream_callback(chunk):
     """
-    Create the RAG pipeline.
+    Basic callback for streaming responses from an llm or generator.
     """
-    print("Setting up chroma db...")
-    document_store = ChromaDocumentStore(
-        collection_name="eidc_datasets",
-        persist_path="chroma-data",
-    )
-    retriever = ChromaQueryTextRetriever(document_store, top_k=2)
-    print("Creating prompt template...")
-    template = """
-    Given the following information, answer the question.
+    print(chunk.content, end="", flush=True)
 
-    Question: {{query}}
 
-    Context:
-    {% for document in documents %}
-        {{ document.content }}
-    {% endfor %}
-
-    Answer:
+def load_rag_pipeline(file):
     """
+    Loads a pipeline for haystack from a yaml file.
+    """
+    print(f'Loading {file} as RAG pipeline source.')
+    with open(file) as f:
+        return Pipeline.loads(f.read())
 
-    prompt_builder = PromptBuilder(template=template)
-    models = [
-        "openai-community/gpt2",
-        "google/flan-t5-large",
-        "MBZUAI/LaMini-Flan-T5-783M",
-        "google/long-t5-tglobal-base",
-    ]
-    model_name = models[1]
-    print(f"Setting up model ({model_name})...")
-    llm = HuggingFaceLocalGenerator(
-        model=model_name,
-        task="text2text-generation",
-        generation_kwargs={"max_new_tokens": 100, "temperature": 0.9},
-    )
-    print("Warming up model...")
-    llm.warm_up()
-    print("Creating haystack pipeline...")
-    rag_pipe = Pipeline()
-    rag_pipe.add_component("retriever", retriever)
-    rag_pipe.add_component("prompt_builder", prompt_builder)
-    rag_pipe.add_component("llm", llm)
-    rag_pipe.connect("retriever.documents", "prompt_builder.documents")
-    rag_pipe.connect("prompt_builder", "llm")
-    return rag_pipe
-
-
-pipeline = create_pipeline()
+file = 'llama3-rag-pipe.yml'
+pipeline = load_rag_pipeline(file)
 app = FastAPI()
 
 
@@ -72,9 +32,10 @@ def query(query_string: Union[str, None] = None):
     """
     Query the API with a prompt. This method will run the RAG pipeline and return the result.
     """
+    print(f'Received query: "{query_string}"')
     results = pipeline.run(
         {
-            "retriever": {"query": query_string, "top_k": 2},
+            "retriever": {"query": query_string, "top_k": 3},
             "prompt_builder": {"query": query_string},
             "llm": {"generation_kwargs": {"max_new_tokens": 100}},
         }

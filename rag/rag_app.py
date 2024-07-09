@@ -7,13 +7,13 @@ import requests
 
 
 @st.cache_data
-def query_llm(query):
+def query_llm(query: str):
     """
     Submits a query to the RAG API and return the result.
     """
     print(f'Query api with "{query}"')
     response = requests.get(
-        url="http://127.0.0.1:8000/query", params={"query": query}, timeout=60
+        url="http://127.0.0.1:8000/query", params={"query_string": query}
     )
     json_response = response.json()
     print(json_response)

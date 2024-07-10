@@ -2,10 +2,12 @@
 API that serves up a RAG pipeline for performing queries on a chroma instance.
 """
 
+import logging
 from typing import Union
 from haystack import Pipeline
 from fastapi import FastAPI
 
+logging.getLogger().setLevel(logging.INFO)
 
 def stream_callback(chunk):
     """
@@ -18,11 +20,12 @@ def load_rag_pipeline(file):
     """
     Loads a pipeline for haystack from a yaml file.
     """
-    print(f'Loading {file} as RAG pipeline source.')
+    logging.info(f'Loading {file} as RAG pipeline source.')
     with open(file) as f:
         return Pipeline.loads(f.read())
 
-file = 'llama3-rag-pipe.yml'
+#file = 'llama3-rag-pipe.yml'
+file = 'flan-t5-rag-pipeline.yml'
 pipeline = load_rag_pipeline(file)
 app = FastAPI()
 
@@ -32,7 +35,7 @@ def query(query_string: Union[str, None] = None):
     """
     Query the API with a prompt. This method will run the RAG pipeline and return the result.
     """
-    print(f'Received query: "{query_string}"')
+    logging.info(f'Received query: "{query_string}"')
     results = pipeline.run(
         {
             "retriever": {"query": query_string, "top_k": 3},

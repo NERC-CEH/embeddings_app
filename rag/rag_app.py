@@ -5,9 +5,12 @@ Basic streamlit application to demonstrate retrieval augmented generative (RAG) 
 import logging
 import requests
 import streamlit as st
+import pandas as pd
 
 
 logging.getLogger().setLevel(logging.INFO)
+USER_AVATAR = '🧑‍💻'
+LLM_AVATAR = '🦖'
 
 
 @st.cache_data
@@ -21,11 +24,15 @@ def query_llm(query: str):
             url="http://127.0.0.1:8000/query", params={"query_string": query}
         )
         json_response = response.json()
-        logging.info(json_response)
-        return json_response["results"]["llm"]["replies"][0]
+        answer = json_response["results"]["answer_builder"]["answers"][0]
+        answer_data = answer['data']
+        docs = [doc['meta']['title'] for doc in answer['documents']]
+        scores = [doc['score'] for doc in answer['documents']]
+        df = pd.DataFrame({'dataset': docs, 'score': scores})
+        df.sort_values('score', inplace=True, ascending=False)
+        return answer_data, df
     except:
-        logging.error('Failed to contact API.')
-        return 'Problem contacting server. Please check API is running.'
+        return 'Failed to get response. Check API is running.', None
 
 
 def main() -> None:
@@ -74,7 +81,7 @@ def main() -> None:
     st.title("Retrieval Augmented Generation (RAG)")
 
     if "messages" not in st.session_state.keys():
-        st.session_state.messages = [{"role": "llm", "content": "Please ask a question."}]
+        st.session_state.messages = [{"role": "llm", "content": "Please ask a question.", "avatar": LLM_AVATAR}]
 
     with st.sidebar:
         st.sidebar.title('readme')
@@ -83,24 +90,25 @@ def main() -> None:
         st.sidebar.subheader('Examples')
         for example in example_prompts:
             if st.button(example, type='primary'):
-                st.session_state.messages.append({"role": "user", "content": example})
+                st.session_state.messages.append({"role": "user", "content": example, "avatar": USER_AVATAR})
 
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
+        with st.chat_message(message["role"], avatar=message['avatar']):
             st.write(message["content"])
 
     if prompt := st.chat_input(placeholder="Enter a question"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.messages.append({"role": "user", "content": prompt, "avatar": USER_AVATAR})
         with st.chat_message("user"):
             st.write(prompt)
 
     if st.session_state.messages[-1]["role"] != "llm":
-        with st.chat_message("llm"):
+        with st.chat_message("llm", avatar=LLM_AVATAR):
             with st.spinner("Thinking..."):
-                response = query_llm(st.session_state.messages[-1]["content"])
-                st.write(response)
-                message = {"role": "llm", "content": response}
+                answer, scores = query_llm(st.session_state.messages[-1]["content"])
+                st.write(answer)
+                message = {"role": "llm", "content": answer, "avatar": LLM_AVATAR}
                 st.session_state.messages.append(message)
+                st.dataframe(scores, hide_index=True)
 
 
 if __name__ == "__main__":

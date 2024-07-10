@@ -7,6 +7,7 @@ from typing import Union
 from haystack import Pipeline
 from fastapi import FastAPI
 
+
 logging.getLogger().setLevel(logging.INFO)
 
 def stream_callback(chunk):
@@ -25,7 +26,7 @@ def load_rag_pipeline(file):
         return Pipeline.loads(f.read())
 
 #file = 'llama3-rag-pipe.yml'
-file = 'flan-t5-rag-pipeline.yml'
+file = 'flan-t5-rag-pipe.yml'
 pipeline = load_rag_pipeline(file)
 app = FastAPI()
 
@@ -38,9 +39,9 @@ def query(query_string: Union[str, None] = None):
     logging.info(f'Received query: "{query_string}"')
     results = pipeline.run(
         {
-            "retriever": {"query": query_string, "top_k": 3},
+            "retriever": {"query": query_string},
             "prompt_builder": {"query": query_string},
-            "llm": {"generation_kwargs": {"max_new_tokens": 100}},
+            "answer_builder": {"query": query_string}            
         }
     )
     return {"query": query_string, "results": results}

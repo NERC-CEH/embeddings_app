@@ -6,11 +6,52 @@ import logging
 import requests
 import streamlit as st
 import pandas as pd
+from haystack import Pipeline
 
 
 logging.getLogger().setLevel(logging.INFO)
 USER_AVATAR = '🧑‍💻'
 LLM_AVATAR = '🦖'
+
+def stream_callback(chunk):
+    """
+    Basic callback for streaming responses from an llm or generator.
+    """
+    print(chunk.content, end="", flush=True)
+
+
+def load_rag_pipeline(file):
+    """
+    Loads a pipeline for haystack from a yaml file.
+    """
+    logging.info(f"Loading {file} as RAG pipeline source.")
+    with open(file) as f:
+        return Pipeline.loads(f.read())
+    
+
+file = "llama3-rag-pipe.yml"
+pipeline = load_rag_pipeline(file)
+
+
+def local_query_llm(query:str):
+    results = pipeline.run(
+        {
+            "retriever": {"query": query},
+            "prompt_builder": {"query": query},
+            "answer_builder": {"query": query},
+        }
+    )
+    return extract_answer_and_datasets(results)
+
+
+def extract_answer_and_datasets(response):
+    answer = response["answer_builder"]["answers"][0]
+    answer_data = answer.data
+    docs = [doc.meta['title'] for doc in answer.documents]
+    scores = [doc.score for doc in answer.documents]
+    df = pd.DataFrame({'dataset': docs, 'score': scores})
+    df.sort_values('score', inplace=True, ascending=False)
+    return answer_data, df
 
 
 @st.cache_data
@@ -24,13 +65,7 @@ def query_llm(query: str):
             url="http://127.0.0.1:8000/query", params={"query_string": query}
         )
         json_response = response.json()
-        answer = json_response["results"]["answer_builder"]["answers"][0]
-        answer_data = answer['data']
-        docs = [doc['meta']['title'] for doc in answer['documents']]
-        scores = [doc['score'] for doc in answer['documents']]
-        df = pd.DataFrame({'dataset': docs, 'score': scores})
-        df.sort_values('score', inplace=True, ascending=False)
-        return answer_data, df
+        return extract_answer_and_datasets(json_response)
     except:
         return 'Failed to get response. Check API is running.', None
 
@@ -78,7 +113,7 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    st.title("Retrieval Augmented Generation (RAG)")
+    st.title("EIDC RAG Interface")
 
     if "messages" not in st.session_state.keys():
         st.session_state.messages = [{"role": "llm", "content": "Please ask a question.", "avatar": LLM_AVATAR}]
@@ -104,7 +139,7 @@ def main() -> None:
     if st.session_state.messages[-1]["role"] != "llm":
         with st.chat_message("llm", avatar=LLM_AVATAR):
             with st.spinner("Thinking..."):
-                answer, scores = query_llm(st.session_state.messages[-1]["content"])
+                answer, scores = local_query_llm(st.session_state.messages[-1]["content"])
                 st.write(answer)
                 message = {"role": "llm", "content": answer, "avatar": LLM_AVATAR}
                 st.session_state.messages.append(message)

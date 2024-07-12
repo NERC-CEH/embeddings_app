@@ -16,6 +16,7 @@ def get_chroma_client() -> chromadb.Client:
     """
     Retrieve or instantiate the chromadb client.
     """
+    global CDB
     if CDB is None:
         CDB = chromadb.HttpClient(host="localhost", port=8000)
     return CDB

@@ -1,6 +1,7 @@
 """
 Unit tets for the visualisation application.
 """
+
 from unittest import TestCase, mock
 from streamlit.testing.v1 import AppTest
 from visualisation.visualisation_app import create_figure
@@ -11,6 +12,7 @@ class TestRagApp(TestCase):
     """
     Test class for the visualisation streamlit app.
     """
+
     def setUp(self):
         """
         Create some dummy data for testing.

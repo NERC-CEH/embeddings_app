@@ -8,7 +8,7 @@ from haystack import Pipeline
 from fastapi import FastAPI
 
 
-logging.getLogger().setLevel(logging.INFO) 
+logging.getLogger().setLevel(logging.INFO)
 
 
 def stream_callback(chunk):
@@ -43,8 +43,7 @@ def query(query_string: Union[str, None] = None):
         {
             "retriever": {"query": query_string},
             "prompt_builder": {"query": query_string},
-            "answer_builder": {"query": query_string}
+            "answer_builder": {"query": query_string},
         }
     )
     return {"query": query_string, "results": results}
-

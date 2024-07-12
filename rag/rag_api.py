@@ -8,7 +8,8 @@ from haystack import Pipeline
 from fastapi import FastAPI
 
 
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.INFO) 
+
 
 def stream_callback(chunk):
     """
@@ -21,12 +22,13 @@ def load_rag_pipeline(file):
     """
     Loads a pipeline for haystack from a yaml file.
     """
-    logging.info(f'Loading {file} as RAG pipeline source.')
+    logging.info(f"Loading {file} as RAG pipeline source.")
     with open(file) as f:
         return Pipeline.loads(f.read())
 
-#file = 'llama3-rag-pipe.yml'
-file = 'flan-t5-rag-pipe.yml'
+
+file = "llama3-rag-pipe.yml"
+# file = 'flan-t5-rag-pipe.yml'
 pipeline = load_rag_pipeline(file)
 app = FastAPI()
 
@@ -41,7 +43,8 @@ def query(query_string: Union[str, None] = None):
         {
             "retriever": {"query": query_string},
             "prompt_builder": {"query": query_string},
-            "answer_builder": {"query": query_string}            
+            "answer_builder": {"query": query_string}
         }
     )
     return {"query": query_string, "results": results}
+

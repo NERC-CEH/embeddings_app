@@ -1,17 +1,20 @@
 """
-Basic streamlit application to demonstrate retrieval augmented generative (RAG) pipelines.
+Basic streamlit application to demonstrate retrieval augmented generative
+(RAG) pipelines.
 """
 
 import logging
-import streamlit as st
-import rag.rag_pipe as rag_pipe
 
+import streamlit as st
+
+import rag.rag_pipe as rag_pipe
 
 logging.getLogger().setLevel(logging.INFO)
 USER_AVATAR = "🧑‍💻"
 LLM_AVATAR = "🦖"
 
-# Example prompts from the initiall LLM scoping work conducted for the data labs enhancement project.
+# Example prompts from the initiall LLM scoping work conducted for the data
+# labs enhancement project.
 example_prompts = [
     "Who collected the land cover map data?",
     "Where is the wettest soil in the UK?",
@@ -61,10 +64,11 @@ def setup_css():
 
 def main() -> None:
     """
-    Main method that creates the streamlit application with a basic chat prompt.
-    Note although the application is presented as a chat view,
-    the llm is only provided with the last message as a prompt and so is not aware
-    of the chat history.
+    Main method that creates the streamlit application with a basic chat
+    prompt.
+    Note although the application is presented as a chat view, the llm is
+    only provided with the last message as a prompt and so is not aware of
+    the chat history.
     """
 
     setup_css()
@@ -73,16 +77,29 @@ def main() -> None:
 
     if "messages" not in st.session_state.keys():
         st.session_state.messages = [
-            {"role": "llm", "content": "Please ask a question.", "avatar": LLM_AVATAR}
+            {
+                "role": "llm",
+                "content": "Please ask a question.",
+                "avatar": LLM_AVATAR,
+            }
         ]
 
     with st.sidebar:
         st.sidebar.title("readme")
         st.sidebar.markdown(
-            "Welcome to the UKCEH RAG pipeline demo. This streamlit app provides access to a retrieval augemnted generative pipeline for querying metadata in the EIDC catalogue."
+            (
+                "Welcome to the UKCEH RAG pipeline demo. This streamlit app "
+                "provides access to a retrieval augemnted generative pipeline "
+                "for querying metadata in the EIDC catalogue."
+            )
         )
         st.sidebar.markdown(
-            "The prompt will attempt to answer any question you pose to it based on the data that is available in the EIDC metadata descriptions. Try it yourself, or click an example query below."
+            (
+                "The prompt will attempt to answer any question you pose to "
+                "it based on the data that is available in the EIDC metadata "
+                "descriptions. Try it yourself, or click an example query "
+                "below."
+            )
         )
         st.sidebar.subheader("Examples")
         for example in example_prompts:
@@ -105,9 +122,15 @@ def main() -> None:
     if st.session_state.messages[-1]["role"] != "llm":
         with st.chat_message("llm", avatar=LLM_AVATAR):
             with st.spinner("Thinking..."):
-                answer, scores = query(st.session_state.messages[-1]["content"])
+                answer, scores = query(
+                    st.session_state.messages[-1]["content"]
+                )
                 st.write(answer)
-                message = {"role": "llm", "content": answer, "avatar": LLM_AVATAR}
+                message = {
+                    "role": "llm",
+                    "content": answer,
+                    "avatar": LLM_AVATAR,
+                }
                 st.session_state.messages.append(message)
                 st.dataframe(scores, hide_index=True)
 

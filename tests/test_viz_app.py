@@ -3,9 +3,11 @@ Unit tets for the visualisation application.
 """
 
 from unittest import TestCase, mock
-from streamlit.testing.v1 import AppTest
-from visualisation.visualisation_app import create_figure
+
 import pandas as pd
+from streamlit.testing.v1 import AppTest
+
+from visualisation.visualisation_app import create_figure
 
 
 class TestRagApp(TestCase):
@@ -31,13 +33,16 @@ class TestRagApp(TestCase):
         """
         Test the streamlit app starts.
 
-        Note: current support for streamlit testing doesn;t currently allow to mimic
-        user interactions with the visualisation.
+        Note: current support for streamlit testing doesn;t currently allow to
+        mimic user interactions with the visualisation.
         """
         with mock.patch(
-            "visualisation.visualisation_app.get_embeddings", return_value=self.data
+            "visualisation.visualisation_app.get_embeddings",
+            return_value=self.data,
         ):
-            at = AppTest.from_file("visualisation/visualisation_app.py").run(timeout=30)
+            AppTest.from_file("visualisation/visualisation_app.py").run(
+                timeout=30
+            )
 
     def test_create_figure(self):
         """
@@ -46,6 +51,8 @@ class TestRagApp(TestCase):
         fig = create_figure(self.data)
 
         scatter_data = fig.data[0]
-        assert scatter_data.type == "scatter", "The plot type should be scatter"
+        assert (
+            scatter_data.type == "scatter"
+        ), "The plot type should be scatter"
         assert all(scatter_data.x == self.data["x"]), "X data should match"
         assert all(scatter_data.y == self.data["y"]), "Y data should match"

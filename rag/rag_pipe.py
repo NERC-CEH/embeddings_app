@@ -1,6 +1,7 @@
 import logging
-from haystack import Pipeline
+
 import pandas as pd
+from haystack import Pipeline
 
 logging.getLogger().setLevel(logging.INFO)
 

@@ -4,9 +4,9 @@ API that serves up a RAG pipeline for performing queries on a chroma instance.
 
 import logging
 from typing import Union
-from haystack import Pipeline
-from fastapi import FastAPI
 
+from fastapi import FastAPI
+from haystack import Pipeline
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -36,7 +36,8 @@ app = FastAPI()
 @app.get("/query")
 def query(query_string: Union[str, None] = None):
     """
-    Query the API with a prompt. This method will run the RAG pipeline and return the result.
+    Query the API with a prompt. This method will run the RAG pipeline and
+    return the result.
     """
     logging.info(f'Received query: "{query_string}"')
     results = pipeline.run(

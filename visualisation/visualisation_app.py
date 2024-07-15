@@ -3,18 +3,24 @@ Streamlit application to view EIDC datasets using their document embeddings
 """
 
 from ast import literal_eval
-import streamlit as st
-import plotly.express as px
-import plotly.graph_objects as go
+
 import chromadb
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
 
-cdb = None 
+CDB = None
 
-def get_chroma_client():
-    if cdb is None:
-        cdb = chromadb.HttpClient(host="localhost", port=8000)
-    return cdb
+
+def get_chroma_client() -> chromadb.Client:
+    """
+    Retrieve or instantiate the chromadb client.
+    """
+    global CDB
+    if CDB is None:
+        CDB = chromadb.HttpClient(host="localhost", port=8000)
+    return CDB
 
 
 @st.cache_data
@@ -25,14 +31,21 @@ def get_embeddings(collection_name: str) -> pd.DataFrame:
     collection = get_chroma_client().get_collection(collection_name)
     result = collection.get(include=["metadatas"])
     reduced_embeddings = [
-        literal_eval(metadata["umap_reduced"]) for metadata in result["metadatas"]
+        literal_eval(metadata["umap_reduced"])
+        for metadata in result["metadatas"]
     ]
     df = pd.DataFrame(reduced_embeddings, columns=["x", "y"])
     df["title"] = [metadata["title"] for metadata in result["metadatas"]]
-    df["description"] = [metadata["description"] for metadata in result["metadatas"]]
+    df["description"] = [
+        metadata["description"] for metadata in result["metadatas"]
+    ]
     df["lineage"] = [metadata["lineage"] for metadata in result["metadatas"]]
-    df["topic"] = [metadata["topic_keywords"] for metadata in result["metadatas"]]
-    df["topic_number"] = [metadata["topic_number"] for metadata in result["metadatas"]]
+    df["topic"] = [
+        metadata["topic_keywords"] for metadata in result["metadatas"]
+    ]
+    df["topic_number"] = [
+        metadata["topic_number"] for metadata in result["metadatas"]
+    ]
     df["doc_id"] = result["ids"]
     df["short_title"] = [
         title[:50] + "..." if len(title) > 15 else title
@@ -65,7 +78,8 @@ def create_figure(df: pd.DataFrame) -> go.Figure:
 
 def update_text(title: str, desc: str, topic: str, col) -> None:
     """
-    Updates the texts in the passed column with details of the currently selected dataset.
+    Updates the texts in the passed column with details of the currently
+    selected dataset.
     """
     with col:
         st.markdown(f"**{title}**")
@@ -75,7 +89,8 @@ def update_text(title: str, desc: str, topic: str, col) -> None:
 
 def extract_details(df: pd.DataFrame, doc_id: str) -> str | str | str:
     """
-    Extract title, description and topic details from a dataframe based on the an id.
+    Extract title, description and topic details from a dataframe based on
+    the an id.
     """
     selection = df[df["doc_id"] == doc_id]
     title = selection["title"].iloc[0]

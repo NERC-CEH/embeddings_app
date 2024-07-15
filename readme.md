@@ -44,23 +44,34 @@ streamlit run visualisation/visualisation_app.py
 ## Connect
 The demo should automatically open in you browser when you run streamlit. If it does not, connect using: [http://localhost:8501](http://localhost:8501).
 
+![Embeddings Visualisation](/docs/img/viz.png)
+
 # RAG (Retrieval Augmented Generation) App
 This application run a retrieval augmented generative pipeline using [Haystack](https://haystack.deepset.ai/), [Chroma](https://www.trychroma.com/), [FastAPI](https://fastapi.tiangolo.com/) and a simple user interface using [Streamlit](https://streamlit.io/).
 
 ## Setup
 Ensure you have followed the steps listed above to start Chroma and upload the EIDC embeddings data. You can then stop the Chroma server and follow the steps below.
 
-## Start FastAPI
-First start up the RAG API:
+## Ollama
+The demo application uses the RAG pipeline defined in `llama3-rag-pipe.yml` which makes use of the `llama3` model via [Ollama](https://ollama.com/). Check the ollama website for most recent setup guide but for brevity you can follow the following basic instructions:
+
+Download and run the ollama installer shell script:
 ```shell
-fastapi dev rag/rag_api.py
+curl -fsSL https://ollama.com/install.sh | sh
 ```
-This hosts the haystack pipeline and will access the data in chromadb directly.
+Load the llama3 model into ollama and check it runs:
+```shell
+ollama run llama3
+```
+> Use `/bye` to exit the ollama shell.
+The llama3 model should now be available via the ollama rest API at [http://localhost:11434](http://localhost:11434)
 
 ## Run Streamlit
 To start the streamlit UI:
 ```shell
-streamlit run rag/rag_app.py
+python -m streamlit run rag/rag_app.py
 ```
 
 The user interface should then be available at [http://localhost:8501](http://localhost:8501).
+
+![RAG User Interface](/docs/img/rag.png)

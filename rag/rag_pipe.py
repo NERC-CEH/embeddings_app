@@ -5,7 +5,7 @@ from haystack import Pipeline
 
 logging.getLogger().setLevel(logging.INFO)
 
-file = "llama3-rag-pipe.yml"
+file = "flan-t5-rag-pipe.yml"
 pipeline = None
 
 

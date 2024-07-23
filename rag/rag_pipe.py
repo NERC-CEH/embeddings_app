@@ -1,4 +1,5 @@
 import logging
+import time
 
 import pandas as pd
 from haystack import Pipeline
@@ -26,6 +27,7 @@ def get_rag_pipeline():
 
 
 def query(query: str):
+    start = time.time()
     results = get_rag_pipeline().run(
         {
             "retriever": {"query": query},
@@ -33,6 +35,8 @@ def query(query: str):
             "answer_builder": {"query": query},
         }
     )
+    end = time.time()
+    logging.info(f"Queried in {(end - start):.3f}s")
     return extract_answer_and_datasets(results)
 
 

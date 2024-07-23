@@ -13,7 +13,7 @@ logging.getLogger().setLevel(logging.INFO)
 USER_AVATAR = "🧑‍💻"
 LLM_AVATAR = "🦖"
 
-# Example prompts from the initiall LLM scoping work conducted for the data
+# Example prompts from the initial LLM scoping work conducted for the data
 # labs enhancement project.
 example_prompts = [
     "Who collected the land cover map data?",
@@ -74,6 +74,7 @@ def main() -> None:
     setup_css()
 
     st.title("EIDC RAG Interface")
+    st.logo("docs/img/ceh_logo.png")
 
     if "messages" not in st.session_state.keys():
         st.session_state.messages = [

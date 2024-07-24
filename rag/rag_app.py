@@ -7,11 +7,13 @@ import logging
 
 import streamlit as st
 
-import rag.rag_pipe as rag_pipe
+from rag.rag_pipe import RagPipe
 
-logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 USER_AVATAR = "🧑‍💻"
 LLM_AVATAR = "🦖"
+rag_pipe = RagPipe("llama3-rag-pipe.yml")
 
 # Example prompts from the initial LLM scoping work conducted for the data
 # labs enhancement project.

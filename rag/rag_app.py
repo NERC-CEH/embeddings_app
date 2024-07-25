@@ -5,6 +5,7 @@ Basic streamlit application to demonstrate retrieval augmented generative
 
 import logging
 
+import pandas as pd
 import streamlit as st
 import yaml
 
@@ -22,7 +23,7 @@ example_prompts = config["examples"]
 
 
 @st.cache_data
-def query(query: str):
+def query(query: str) -> tuple[str, pd.DataFrame]:
     return rag_pipe.query(query)
 
 

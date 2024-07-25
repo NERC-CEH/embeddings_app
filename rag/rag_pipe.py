@@ -46,10 +46,12 @@ class RagPipe:
                 "retriever": {"query": query},
                 "prompt_builder": {"query": query},
                 "answer_builder": {"query": query},
-            }
+            },
+            include_outputs_from={"prompt_builder"},
         )
         end = time.time()
         self.logger.info(f"Queried in {(end - start):.3f}s")
+        self.logger.debug(f"{results['prompt_builder']}")
         answer = results["answer_builder"]["answers"][0]
         return answer.data, self.extract_datasets(answer)
 

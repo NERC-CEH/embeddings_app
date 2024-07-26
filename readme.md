@@ -75,3 +75,15 @@ python -m streamlit run rag/rag_app.py
 The user interface should then be available at [http://localhost:8501](http://localhost:8501).
 
 ![RAG User Interface](/docs/img/rag.png)
+
+# Docker Image
+To build the docker image:
+```shell
+docker build -t emb_app .
+```
+
+run the image:
+```shell
+docker run --network="host" -p 8501:8501 emb_app
+```
+> Note: `--network="host"` is needed to allow the container to connect to ollama running locally. This should be fixed in the future by runnning ollama in it's own container.

@@ -77,13 +77,24 @@ The user interface should then be available at [http://localhost:8501](http://lo
 ![RAG User Interface](/docs/img/rag.png)
 
 # Docker Image
-To build the docker image:
-```shell
-docker build -t emb_app .
-```
+## Requirements
+- Install the nvidia container toolkit [https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installation](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installation)
 
-run the image:
+To deplot with docker:
 ```shell
-docker run --network="host" -p 8501:8501 emb_app
+sudo docker compose up
 ```
-> Note: `--network="host"` is needed to allow the container to connect to ollama running locally. This should be fixed in the future by runnning ollama in it's own container.
+> Note: The ollama docker container assumes that there is an Nvidia GPU available. To run without a GPU comment out the following lines from `docker-compose.yml` (this will significantly impact performance): 
+```yaml
+      - ./ollama-entrypoint.sh:/ollama-entrypoint.sh
+    container_name: ollama
+    #deploy:
+      #resources:
+        #reservations:
+          #devices:
+            #- driver: nvidia
+              #count: all
+              #capabilities: [gpu]
+    entrypoint: ["/usr/bin/bash", "/ollama-entrypoint.sh"]
+volumes:
+```

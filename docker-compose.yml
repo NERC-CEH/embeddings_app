@@ -1,0 +1,25 @@
+services:
+  streamlit:
+    build:
+      dockerfile: ./Dockerfile
+    ports:
+      - 8501:8501
+    network_mode: "host"
+  ollama:
+    image: ollama/ollama
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama:/root/.ollama
+      - ./ollama-entrypoint.sh:/ollama-entrypoint.sh
+    container_name: ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["/usr/bin/bash", "/ollama-entrypoint.sh"]
+volumes:
+  ollama:

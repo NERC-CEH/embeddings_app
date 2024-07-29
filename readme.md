@@ -75,3 +75,13 @@ python -m streamlit run rag/rag_app.py
 The user interface should then be available at [http://localhost:8501](http://localhost:8501).
 
 ![RAG User Interface](/docs/img/rag.png)
+
+# Map App
+This application performs basic NER (Named Entity Recognition) on an input query using [Spacy](https://spacy.io/). Any detected geographic place names (GPE) are automatically geocoded using [Nominatim](https://nominatim.org/) through [GeoPy](https://geopy.readthedocs.io/) and then displayed to a map using [Folium](https://python-visualization.github.io/folium). The NER results are also dispayed using [Displacy](https://demos.explosion.ai/displacy).
+
+## Run Streamlit
+The application simply runs via streamlit:
+```shell
+python -m streamlit run map/map_app.py
+```
+![NER Mapping UI](/docs/img/map_app.png)

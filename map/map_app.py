@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 nlp_pipe = spacy.load("en_core_web_sm")
 geocoder = Nominatim(user_agent="ceh_sample_app")
 rl_geocode = RateLimiter(geocoder.geocode, min_delay_seconds=1)
-custom_icon = folium.features.CustomIcon("images/marker-icon-2x.png")
 
 
 @st.cache_data
@@ -72,24 +71,22 @@ def main() -> None:
                 for entity in parsed_query.ents
                 if entity.label_ == "GPE"
             ]
-            if len(locations) > 0:
-                with right:
-                    map = folium.Map(
-                        location=[0.000000, 0.000000], zoom_start=1
-                    )
-                    for location in locations:
-                        if location.latitude and location.longitude:
-                            folium.Marker(
-                                location=[
-                                    location.latitude,
-                                    location.longitude,
-                                ],
-                                popup=folium.Popup(location.address),
-                            ).add_to(map)
-                        if location.raw["geojson"]:
-                            folium.GeoJson(location.raw["geojson"]).add_to(map)
-                    map.fit_bounds(calc_bounds(locations))
-                    st_folium(map)
+            locations = [loc for loc in locations if loc]
+    with right:
+        if len(locations) < 1:
+            return
+        map = folium.Map(location=[0.000000, 0.000000], zoom_start=1)
+        for location in locations:
+            folium.Marker(
+                location=[
+                    location.latitude,
+                    location.longitude,
+                ],
+                popup=folium.Popup(location.address),
+            ).add_to(map)
+            folium.GeoJson(location.raw["geojson"]).add_to(map)
+        map.fit_bounds(calc_bounds(locations))
+        st_folium(map)
 
 
 if __name__ == "__main__":

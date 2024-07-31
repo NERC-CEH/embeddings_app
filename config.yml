@@ -1,5 +1,5 @@
 dir: rag-pipes
-pipeline: llama3.yml
+pipeline: flan.yml
 # Example prompts from the initial LLM scoping work conducted for the data
 # labs enhancement project.
 examples:

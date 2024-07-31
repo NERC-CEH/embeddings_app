@@ -1,7 +1,9 @@
 eidc_embeddings.csv
 .venv/
-chroma_data/
+chroma-data/
 chroma.log
 coverage.xml
 .coverage
 **/__pycache__/
+.idea/
+*test.ipynb

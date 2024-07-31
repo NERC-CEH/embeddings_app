@@ -1,14 +1,15 @@
 import logging
-from typing import List, Tuple
+from typing import Dict, List
 
 import folium
+import numpy as np
 import spacy
 import spacy_streamlit
 import streamlit as st
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 from geopy.location import Location
-from streamlit_folium import st_folium
+from streamlit_folium import folium_static
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,7 +18,7 @@ logging.basicConfig(
     ),
 )
 logger = logging.getLogger(__name__)
-nlp_pipe = spacy.load("en_core_web_sm")
+nlp_pipe = spacy.load("en_core_web_md")
 geocoder = Nominatim(user_agent="ceh_sample_app")
 rl_geocode = RateLimiter(geocoder.geocode, min_delay_seconds=1)
 
@@ -28,40 +29,58 @@ def locate(query) -> Location:
     return rl_geocode(query, geometry="geojson", country_codes="gb")
 
 
-def extract_lats_longs(geojson):
-    lats = []
-    longs = []
-    if geojson["type"] == "MultiPolygon":
-        for polygon in geojson["coordinates"][0]:
-            lats = lats + [coord[1] for coord in polygon]
-            longs = longs + [coord[0] for coord in polygon]
-    else:
-        lats = lats + [coord[1] for coord in geojson["coordinates"][0]]
-        longs = longs + [coord[0] for coord in geojson["coordinates"][0]]
-    return lats, longs
+def calc_bounds(coords: List[List[float]]) -> List[List[float]]:
+    """
+    Calculates the bounds for a list of coordinates. Returns the most
+    south-westerly point and the most north-easterly point required to
+    encapsulate all the coordinates in a bounding box.
+    """
+    transposed_coords = np.array(coords).T.tolist()
+    return [
+        [min(transposed_coords[0]), min(transposed_coords[1])],
+        [max(transposed_coords[0]), max(transposed_coords[1])],
+    ]
 
 
-def extract_geojson_lat_long(locations) -> Tuple[List[int], List[int]]:
-    lats = []
-    longs = []
+def calc_geojson_bounds(geojson: Dict) -> List[List[float]]:
+    """
+    Unpacks the coordinates provided in a geojson object and calculates a
+    bounding box to enclose them. Works with point, polygon and multi-polygon
+    geojson types.
+    """
+    polygons = geojson["coordinates"]
+    polygon_bounds = []
+    match geojson["type"]:
+        case "MultiPolygon":
+            for polygon in polygons:
+                polygon_bounds.extend(calc_bounds(polygon[0]))
+        case "Polygon":
+            polygon_bounds.extend(calc_bounds(polygons[0]))
+        case "Point":
+            polygon_bounds = [polygons]
+    return calc_bounds(polygon_bounds)
+
+
+def get_bounds(locations: List[Location]) -> List[List[int]]:
+    location_bounds = []
     for location in locations:
-        loc_lats, loc_longs = extract_lats_longs(location.raw["geojson"])
-        lats.extend(loc_lats)
-        longs.extend(loc_longs)
-    return lats, longs
+        location_bounds.extend(calc_geojson_bounds(location.raw["geojson"]))
+    return calc_bounds(location_bounds)
 
 
-def calc_bounds(locations: List[Location]) -> List[List[int]]:
-    lats, longs = extract_geojson_lat_long(locations)
-    lats = lats + [loc.latitude for loc in locations]
-    longs = longs + [loc.longitude for loc in locations]
-    return [[min(lats), min(longs)], [max(lats), max(longs)]]
+def flip_coord_lat_long(coord: List[float]) -> List[float]:
+    return [coord[1], coord[0]]
+
+
+def flip_coords_lat_long(coords: List[List[float]]) -> List[List[float]]:
+    return [flip_coord_lat_long(coord) for coord in coords]
 
 
 def main() -> None:
     st.set_page_config(layout="wide", page_title="NER Spatial Mapping")
     st.title("NER Spatial Mapping")
     left, right = st.columns(2)
+    locations = []
     with left:
         if query := st.text_input("Enter query"):
             parsed_query = nlp_pipe(query)
@@ -85,8 +104,11 @@ def main() -> None:
                 popup=folium.Popup(location.address),
             ).add_to(map)
             folium.GeoJson(location.raw["geojson"]).add_to(map)
-        map.fit_bounds(calc_bounds(locations))
-        st_folium(map)
+        bounds = get_bounds(locations)
+        bounds = flip_coords_lat_long(bounds)
+        logger.info(bounds)
+        map.fit_bounds(bounds)
+        folium_static(map)
 
 
 if __name__ == "__main__":

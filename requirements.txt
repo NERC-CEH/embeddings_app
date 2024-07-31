@@ -23,7 +23,7 @@ branca==0.7.2
 build==1.2.1
 cachetools==5.3.3
 catalogue==2.0.10
-certifi==2024.6.2
+certifi==2024.7.4
 cffi==1.16.0
 cfgv==3.4.0
 charset-normalizer==3.3.2

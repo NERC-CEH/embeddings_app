@@ -1,0 +1,54 @@
+components:
+  answer_builder:
+    init_parameters:
+      pattern: null
+      reference_pattern: null
+    type: haystack.components.builders.answer_builder.AnswerBuilder
+  llm:
+    init_parameters:
+      generation_kwargs:
+        num_ctx: 16384
+      model: llama3.1
+      raw: false
+      streaming_callback: null
+      system_prompt: null
+      template: null
+      timeout: 120
+      url: http://localhost:11434/api/generate
+    type: haystack_integrations.components.generators.ollama.generator.OllamaGenerator
+  prompt_builder:
+    init_parameters:
+      required_variables: null
+      template: >
+        You are part of a retrieval augmented pipeline. You will be given a question and a context on which to base your answer.\n
+        Do not use your own knowledge to answer the question.\n
+        The context provided will be metadata from datasets contained in the Environmental Information Data Centre (EIDC).\n
+        Do not refer to "context" in your answer, instead refer to the context as available information.
+        If the answer to the question is not clear from the context, suggest which dataset or datasets might be helpful in answering the question.\n
+        Question: {{query}}\n
+        Context: {% for document in documents%}\n{{ document.content }}\n{% endfor %}
+        Answer: 
+      variables: null
+    type: haystack.components.builders.prompt_builder.PromptBuilder
+  retriever:
+    init_parameters:
+      document_store:
+        init_parameters:
+          collection_name: eidc_datasets
+          embedding_function: default
+          persist_path: chroma-data
+        type: haystack_integrations.document_stores.chroma.document_store.ChromaDocumentStore
+      filters: null
+      top_k: 5
+    type: haystack_integrations.components.retrievers.chroma.retriever.ChromaQueryTextRetriever
+connections:
+- receiver: prompt_builder.documents
+  sender: retriever.documents
+- receiver: answer_builder.documents
+  sender: retriever.documents
+- receiver: llm.prompt
+  sender: prompt_builder.prompt
+- receiver: answer_builder.replies
+  sender: llm.replies
+max_loops_allowed: 100
+metadata: {}

@@ -18,8 +18,8 @@ components:
   prompt_builder:
     init_parameters:
       required_variables: null
-      template: "\nGiven the following information, answer the question.\nIgnore your\
-        \ own knowledge.\n\nQuestion: {{query}}\n\nContext:\n{% for document in documents\
+      template: "\nGiven the following information from datasets, answer the question.\nIgnore your\
+        \ own knowledge. If the answer is not clear suggest which dataset, that was provided in the context, might help answering the question. \n\nQuestion: {{query}}\n\nContext:\n{% for document in documents\
         \ %}\n    {{ document.content }}\n{% endfor %}\n\nAnswer:\n"
       variables: null
     type: haystack.components.builders.prompt_builder.PromptBuilder

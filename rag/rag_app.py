@@ -5,32 +5,29 @@ Basic streamlit application to demonstrate retrieval augmented generative
 
 import logging
 
+import pandas as pd
 import streamlit as st
+import yaml
 
-import rag.rag_pipe as rag_pipe
+from rag.rag_pipe import RagPipe
 
-logging.getLogger().setLevel(logging.INFO)
+with open("config.yml", "r") as config_file:
+    config = yaml.safe_load(config_file)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 USER_AVATAR = "🧑‍💻"
 LLM_AVATAR = "🦖"
-
-# Example prompts from the initiall LLM scoping work conducted for the data
-# labs enhancement project.
-example_prompts = [
-    "Who collected the land cover map data?",
-    "Where is the wettest soil in the UK?",
-    "Where is water quality worst for England?",
-    "Where are bird populations declining in the UK?",
-    "Where in the UK are bumblebees most at risk from neonicotinoids?",
-    "Which county in the UK has the most rivers?",
-]
+rag_pipe = RagPipe(f"{config['dir']}/{config['pipeline']}")
+example_prompts = config["examples"]
 
 
 @st.cache_data
-def query(query: str):
+def query(query: str) -> tuple[str, pd.DataFrame]:
     return rag_pipe.query(query)
 
 
-def setup_css():
+def setup_css() -> None:
     """
     Modifies css for primary button types to display as textual links.
     """
@@ -74,6 +71,7 @@ def main() -> None:
     setup_css()
 
     st.title("EIDC RAG Interface")
+    st.logo("docs/img/ceh_logo.png")
 
     if "messages" not in st.session_state.keys():
         st.session_state.messages = [

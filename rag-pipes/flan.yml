@@ -1,4 +1,9 @@
 components:
+  answer_builder:
+    init_parameters:
+      pattern: null
+      reference_pattern: null
+    type: haystack.components.builders.answer_builder.AnswerBuilder
   llm:
     init_parameters:
       generation_kwargs:
@@ -9,7 +14,6 @@ components:
         model: google/flan-t5-large
         task: text2text-generation
       stop_words: null
-      streaming_callback: null
       token:
         env_vars:
         - HF_API_TOKEN
@@ -18,12 +22,9 @@ components:
     type: haystack.components.generators.hugging_face_local.HuggingFaceLocalGenerator
   prompt_builder:
     init_parameters:
-      required_variables: null
-      template: "\n    Given the following information, answer the question.\n\n \
-        \   Question: {{query}}\n\n    Context:\n    {% for document in documents\
-        \ %}\n        {{ document.content }}\n    {% endfor %}\n\n    Answer:\n  \
-        \  "
-      variables: null
+      template: "\nGiven the following information, answer the question.\n\nQuestion:\
+        \ {{query}}\n\nContext:\n{% for document in documents %}\n    {{ document.content\
+        \ }}\n{% endfor %}\n\nAnswer:\n"
     type: haystack.components.builders.prompt_builder.PromptBuilder
   retriever:
     init_parameters:
@@ -34,12 +35,16 @@ components:
           persist_path: chroma-data
         type: haystack_integrations.document_stores.chroma.document_store.ChromaDocumentStore
       filters: null
-      top_k: 2
+      top_k: 3
     type: haystack_integrations.components.retrievers.chroma.retriever.ChromaQueryTextRetriever
 connections:
 - receiver: prompt_builder.documents
   sender: retriever.documents
+- receiver: answer_builder.documents
+  sender: retriever.documents
 - receiver: llm.prompt
   sender: prompt_builder.prompt
+- receiver: answer_builder.replies
+  sender: llm.replies
 max_loops_allowed: 100
 metadata: {}

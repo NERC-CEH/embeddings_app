@@ -17,11 +17,12 @@ class EIDCJSONToDocument:
     Alternatively, a list of fields can be specified to extract only the required metadata.
     """
 
-    def __init__(self, metadata_fields: Optional[List[str]] = None):
-        self.metadata_fields = metadata_fields
-
     @component.output_types(documents=List[Document])
-    def run(self, sources: List[Union[ByteStream]]):
+    def run(
+        self,
+        sources: List[Union[ByteStream]],
+        metadata_fields: Optional[List[str]] = None,
+    ):
         documents = []
         for source in sources:
             try:
@@ -37,11 +38,7 @@ class EIDCJSONToDocument:
                 api_response = json.loads(bytestream.data.decode("utf-8"))
 
                 for dataset in api_response["results"]:
-                    keys = (
-                        self.metadata_fields
-                        if self.metadata_fields
-                        else dataset
-                    )
+                    keys = metadata_fields if metadata_fields else dataset
                     for key in keys:
                         metadata = {
                             "src_dataset": dataset["identifier"],

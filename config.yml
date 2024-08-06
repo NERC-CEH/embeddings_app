@@ -1,11 +1,18 @@
-dir: rag-pipes
-pipeline: llama3-1.yml
-# Example prompts from the initial LLM scoping work conducted for the data
-# labs enhancement project.
-examples:
-  - Who collected the land cover map data?
-  - Where is the wettest soil in the UK?
-  - Where is water quality worst for England?
-  - Where are bird populations declining in the UK?
-  - Where in the UK are bumblebees most at risk from neonicotinoids?
-  - Which county in the UK has the most rivers?
+pipelines-dir: rag-pipes
+ingestion: 
+  pipeline: index-pipe.yml
+  metadata: ["description"]
+rag-demo:
+  pipeline: llama3-1.yml
+  # Example prompts from the initial LLM scoping work conducted for the data
+  # labs enhancement project.
+  examples:
+    - Who collected the land cover map data?
+    - Where is the wettest soil in the UK?
+    - Where is water quality worst for England?
+    - Where are bird populations declining in the UK?
+    - Where in the UK are bumblebees most at risk from neonicotinoids?
+    - Which county in the UK has the most rivers?
+vector-db:
+  path: new-chroma-test
+  collection: eidc-metadata

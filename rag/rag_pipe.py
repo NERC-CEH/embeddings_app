@@ -60,8 +60,11 @@ class RagPipe:
         Extracts the datasets from the pipelines return object and returns
         them in a dataframe with their scores.
         """
-        docs = [doc.meta["title"] for doc in answer.documents]
+        docs = [doc.meta["dataset_title"] for doc in answer.documents]
+        fields = [doc.meta["eidc_metadata_key"] for doc in answer.documents]
         scores = [doc.score for doc in answer.documents]
-        df = pd.DataFrame({"dataset": docs, "score": scores})
+        df = pd.DataFrame(
+            {"dataset": docs, "metadata": fields, "score": scores}
+        )
         df.sort_values("score", inplace=True, ascending=False)
         return df

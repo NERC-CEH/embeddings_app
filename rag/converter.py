@@ -41,11 +41,13 @@ class EIDCJSONToDocument:
                     keys = metadata_fields if metadata_fields else dataset
                     for key in keys:
                         metadata = {
-                            "src_dataset": dataset["identifier"],
+                            "dataset_id": dataset["identifier"],
+                            "dataset_title": dataset["title"],
                             "eidc_metadata_key": key,
                         }
                         doc = Document(
-                            content=str(dataset[key]), meta=metadata
+                            content=f"The dataset entitled \"{dataset['title']}\" contains the following information in it's \"{key}\" metadata field: {str(dataset[key])}",
+                            meta=metadata,
                         )
                         documents.append(doc)
 

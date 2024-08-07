@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 import yaml
 
-from rag.rag_pipe import RagPipe
+from rag.wrappers import RagPipelineWrapper
 
 with open("config.yml", "r") as config_file:
     config = yaml.safe_load(config_file)
@@ -18,8 +18,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 USER_AVATAR = "🧑‍💻"
 LLM_AVATAR = "🦖"
-rag_pipe = RagPipe(f"{config['dir']}/{config['pipeline']}")
-example_prompts = config["examples"]
+
+pipeline_file = f"{config["pipelines-dir"]}/{config["rag-demo"]["pipeline"]}"
+chroma_path = config["vector-db"]["path"]
+collection = config["vector-db"]["collection"]
+prompt = config["rag-demo"]["prompt"]
+rag_pipe = RagPipelineWrapper(
+    pipeline_file,
+    chroma_path=chroma_path,
+    collection=collection,
+    prompt=prompt,
+)
+example_prompts = config["rag-demo"]["examples"]
 
 
 @st.cache_data

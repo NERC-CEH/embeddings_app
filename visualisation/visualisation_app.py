@@ -9,8 +9,11 @@ import plotly.graph_objects as go
 import streamlit as st
 from sklearn.manifold import TSNE
 import numpy as np
+import yaml
 
 CDB = None
+with open("config.yml", "r") as config_file:
+    config = yaml.safe_load(config_file)
 
 
 def get_chroma_client() -> chromadb.Client:
@@ -19,7 +22,7 @@ def get_chroma_client() -> chromadb.Client:
     """
     global CDB
     if CDB is None:
-        CDB = chromadb.PersistentClient(path="test-chroma-data")
+        CDB = chromadb.PersistentClient(path=config["vector-db"]["path"])
     return CDB
 
 
@@ -75,14 +78,14 @@ def create_figure(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
-def update_text(title: str, desc: str, topic: str, col) -> None:
+def update_text(title: str, desc: str, col) -> None:
     """
     Updates the texts in the passed column with details of the currently
     selected dataset.
     """
     with col:
         st.markdown(f"**{title}**")
-        st.markdown(f"*{topic}*")
+        # st.markdown(f"*{topic}*")
         st.markdown(desc)
 
 
@@ -94,8 +97,8 @@ def extract_details(df: pd.DataFrame, doc_id: str) -> str | str | str:
     selection = df[df["doc_id"] == doc_id]
     title = selection["title"].iloc[0]
     desc = selection["description"].iloc[0]
-    topic = selection["topic"].iloc[0]
-    return title, desc, topic
+    # topic = selection["topic"].iloc[0]
+    return title, desc
 
 
 def main() -> None:
@@ -106,7 +109,7 @@ def main() -> None:
     st.title("EIDC Dataset Embeddings")
     col1, col2 = st.columns([3, 1])
 
-    df = get_embeddings("eidc_full_metadata")
+    df = get_embeddings(config["vector-db"]["collection"])
     fig = create_figure(df)
 
     event = col1.plotly_chart(
@@ -115,8 +118,8 @@ def main() -> None:
     if len(event["selection"]["points"]) > 0:
         point = event.selection.points[0]
         doc_id = point["customdata"]
-        title, desc, topic = extract_details(df, doc_id)
-        update_text(title, desc, topic, col2)
+        title, desc = extract_details(df, doc_id)
+        update_text(title, desc, col2)
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ class TestRagApp(TestCase):
             {"dataset": ["test_dataset_name"], "y": [0.5]}
         )
 
-    @patch("rag.rag_pipe.RagPipe.query")
+    @patch("rag.wrappers.RagPipelineWrapper.query")
     def test_input_and_query(self, mock_query):
         """
         Test input and query response, patching out the response from the

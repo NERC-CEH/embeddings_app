@@ -1,7 +1,6 @@
 components:
   converter:
-    init_parameters: {}
-    type: rag.converter.EIDCJSONToDocument
+    type: ingestion.converter.EIDCJSONToDocument
   fetcher:
     init_parameters:
       raise_on_failure: true
@@ -14,9 +13,9 @@ components:
     init_parameters:
       document_store:
         init_parameters:
-          collection_name: eidc_full_metadata
+          collection_name: {collection}
           embedding_function: default
-          persist_path: test-chroma-data
+          persist_path: {chroma_path}
         type: haystack_integrations.document_stores.chroma.document_store.ChromaDocumentStore
       policy: NONE
     type: haystack.components.writers.document_writer.DocumentWriter
@@ -26,4 +25,3 @@ connections:
 - receiver: writer.documents
   sender: converter.documents
 max_loops_allowed: 100
-metadata: {}

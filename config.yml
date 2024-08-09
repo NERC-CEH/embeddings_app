@@ -1,11 +1,27 @@
-dir: rag-pipes
-pipeline: llama3.yml
-# Example prompts from the initial LLM scoping work conducted for the data
-# labs enhancement project.
-examples:
-  - Who collected the land cover map data?
-  - Where is the wettest soil in the UK?
-  - Where is water quality worst for England?
-  - Where are bird populations declining in the UK?
-  - Where in the UK are bumblebees most at risk from neonicotinoids?
-  - Which county in the UK has the most rivers?
+pipelines-dir: pipelines
+ingestion: 
+  pipeline: index-pipe.yml
+  metadata: ["description"]
+rag-demo:
+  pipeline: llama3-1.yml
+  prompt: >
+    You are part of a retrieval augmented pipeline. You will be given a question and a context on which to base your answer.\n
+    Do not use your own knowledge to answer the question.\n
+    The context provided will be metadata from datasets contained in the Environmental Information Data Centre (EIDC).\n
+    Do not refer to "context" in your answer, instead refer to the context as available information.
+    If the answer to the question is not clear from the context, suggest which dataset or datasets might be helpful in answering the question.\n
+    Question: {{query}}\n
+    Context: {% for document in documents%}\n{{ document.content }}\n{% endfor %}
+    Answer:
+  # Example questions from the initial LLM scoping work conducted for the data
+  # labs enhancement project.
+  examples:
+    - Who collected the land cover map data?
+    - Where is the wettest soil in the UK?
+    - Where is water quality worst for England?
+    - Where are bird populations declining in the UK?
+    - Where in the UK are bumblebees most at risk from neonicotinoids?
+    - Which county in the UK has the most rivers?
+vector-db:
+  path: chroma-data
+  collection: eidc-metadata

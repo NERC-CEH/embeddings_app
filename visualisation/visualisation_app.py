@@ -2,15 +2,18 @@
 Streamlit application to view EIDC datasets using their document embeddings
 """
 
-from ast import literal_eval
-
 import chromadb
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+from sklearn.manifold import TSNE
+import numpy as np
+import yaml
 
 CDB = None
+with open("config.yml", "r") as config_file:
+    config = yaml.safe_load(config_file)
 
 
 def get_chroma_client() -> chromadb.Client:
@@ -19,7 +22,7 @@ def get_chroma_client() -> chromadb.Client:
     """
     global CDB
     if CDB is None:
-        CDB = chromadb.HttpClient(host="localhost", port=8000)
+        CDB = chromadb.PersistentClient(path=config["vector-db"]["path"])
     return CDB
 
 
@@ -29,24 +32,23 @@ def get_embeddings(collection_name: str) -> pd.DataFrame:
     Retrieve document embeddings from chroma database.
     """
     collection = get_chroma_client().get_collection(collection_name)
-    result = collection.get(include=["metadatas"])
-    reduced_embeddings = [
-        literal_eval(metadata["umap_reduced"])
-        for metadata in result["metadatas"]
-    ]
+    result = collection.get(
+        where={"eidc_metadata_key": "description"},
+        include=["embeddings", "documents", "metadatas"],
+    )
+
+    embeddings = np.array(result["embeddings"])
+
+    tsne = TSNE(n_components=2, verbose=1, random_state=42)
+    reduced_embeddings = tsne.fit_transform(embeddings)
+
     df = pd.DataFrame(reduced_embeddings, columns=["x", "y"])
-    df["title"] = [metadata["title"] for metadata in result["metadatas"]]
-    df["description"] = [
-        metadata["description"] for metadata in result["metadatas"]
+    df["title"] = [
+        metadata["dataset_title"] for metadata in result["metadatas"]
     ]
-    df["lineage"] = [metadata["lineage"] for metadata in result["metadatas"]]
-    df["topic"] = [
-        metadata["topic_keywords"] for metadata in result["metadatas"]
-    ]
-    df["topic_number"] = [
-        metadata["topic_number"] for metadata in result["metadatas"]
-    ]
-    df["doc_id"] = result["ids"]
+    df["description"] = result["documents"]
+
+    df["doc_id"] = [metadata["dataset_id"] for metadata in result["metadatas"]]
     df["short_title"] = [
         title[:50] + "..." if len(title) > 15 else title
         for title in df["title"].to_list()
@@ -60,15 +62,15 @@ def create_figure(df: pd.DataFrame) -> go.Figure:
     """
     color_dict = {i: px.colors.qualitative.Alphabet[i] for i in range(0, 20)}
     color_dict[-1] = "#ABABAB"
-    topic_color = df["topic_number"].map(color_dict)
+    # topic_color = df["topic_number"].map(color_dict)
     fig = go.Figure(
         data=go.Scatter(
             x=df["x"],
             y=df["y"],
             mode="markers",
-            marker_color=topic_color,
+            # marker_color=topic_color,
             customdata=df["doc_id"],
-            text=df["short_title"],
+            text=df["title"],
             hovertemplate="<b>%{text}</b>",
         )
     )
@@ -76,14 +78,14 @@ def create_figure(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
-def update_text(title: str, desc: str, topic: str, col) -> None:
+def update_text(title: str, desc: str, col) -> None:
     """
     Updates the texts in the passed column with details of the currently
     selected dataset.
     """
     with col:
         st.markdown(f"**{title}**")
-        st.markdown(f"*{topic}*")
+        # st.markdown(f"*{topic}*")
         st.markdown(desc)
 
 
@@ -95,8 +97,8 @@ def extract_details(df: pd.DataFrame, doc_id: str) -> str | str | str:
     selection = df[df["doc_id"] == doc_id]
     title = selection["title"].iloc[0]
     desc = selection["description"].iloc[0]
-    topic = selection["topic"].iloc[0]
-    return title, desc, topic
+    # topic = selection["topic"].iloc[0]
+    return title, desc
 
 
 def main() -> None:
@@ -107,7 +109,7 @@ def main() -> None:
     st.title("EIDC Dataset Embeddings")
     col1, col2 = st.columns([3, 1])
 
-    df = get_embeddings("eidc_datasets")
+    df = get_embeddings(config["vector-db"]["collection"])
     fig = create_figure(df)
 
     event = col1.plotly_chart(
@@ -116,8 +118,8 @@ def main() -> None:
     if len(event["selection"]["points"]) > 0:
         point = event.selection.points[0]
         doc_id = point["customdata"]
-        title, desc, topic = extract_details(df, doc_id)
-        update_text(title, desc, topic, col2)
+        title, desc = extract_details(df, doc_id)
+        update_text(title, desc, col2)
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ class TestRagApp(TestCase):
                 "y": [10, 11],
                 "topic_number": [1, 2],
                 "doc_id": ["id1", "id2"],
-                "short_title": ["stitle1", "stitle2"],
+                "title": ["stitle1", "stitle2"],
             }
         )
 

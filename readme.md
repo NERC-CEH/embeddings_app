@@ -6,39 +6,29 @@ The follow requirments shoud be installed:
 
 # Setup
 ## Install Python Packages
-> It is recommended you create a new [python virtual environment](https://docs.python.org/3/library/venv.html) whenever running a python project. e.g. `python -m venv .venv`, `source .venv/bin/activate`
+Setup a new [python virtual environment](https://docs.python.org/3/library/venv.html) 
+```shell
+python -m venv .venv`, `source .venv/bin/activate
+```
 
-First install required packages from `requirements.txt`:
+Install the required packages from `requirements.txt`:
 ```bash
 pip install -r requirements.txt
 ```
 
+# Ingestion
+To run all the demos you will need to download the metadata from the EIDC catalogue and load it into a Chroma vector database. A convenience pipeline has been written to handle this task. The pipeline is defined in `pipelines/index.yml` and it can be easily run using `load_embeddings.py`:
+```shell
+./load_embeddings.py
+```
+> This script assumes you have activated a python `venv` and install the required dependnecies.
+This ingestion pipeline will download the metadata avaialble in the EIDC catalgoue, convert and store the metadata in a chroma instance. Setting for defining the file path to the chroma data, the collection to use, and which metadata fields to store is defined in `config.yml`
+
 # Visualisation App
-## Startup Chroma
-The [Chroma](https://www.trychroma.com/) database should be started in server mode. This database stores the embeddings used in the demo. To start:
-```bash
-chroma run --path chroma-data
-```
-This will start the database server and store the data in `chroma_data`. By default the database should run on port `8000`.
-
-## Upload Data
-To upload data to chroma simply run:
-```bash
-./add_embeddings.py
-```
-This script assumes you are using a python virtual environemnt and that the data is contained in a file named `eidc_embeddings.csv` which should look like this:
-
-| embeddings | umap_reduced | title | description | lineage | topic_number | topic_keywords |
-| ---------- | ------------ | ----- | ----------- | ------- | ------------ | -------------- |
-| [-1.77440979e-03, -4.55704965e-02, 5.42910360... | [6.1172633, 6.4104953] | High resolution water quality and flow monitor... | This data set comprises of hourly water qualit... | Water quality and flow data from the Bow Brook... | 1 | ['water samples', 'catchment', 'catchments', '... |
-| ...        |              |       |             |         |              |                |
-| ...        |              |       |             |         |              |                |
-
-
 ## Run Streamlit
-The application runs using [Streamlit](https://streamlit.io/). To start it up use:
+All demos run using [Streamlit](https://streamlit.io/). To start the visualisation demo use:
 ```bash
-streamlit run visualisation/visualisation_app.py
+python -m streamlit run visualisation/visualisation_app.py
 ```
 
 ## Connect
@@ -47,24 +37,22 @@ The demo should automatically open in you browser when you run streamlit. If it 
 ![Embeddings Visualisation](/docs/img/viz.png)
 
 # RAG (Retrieval Augmented Generation) App
-This application run a retrieval augmented generative pipeline using [Haystack](https://haystack.deepset.ai/), [Chroma](https://www.trychroma.com/), [FastAPI](https://fastapi.tiangolo.com/) and a simple user interface using [Streamlit](https://streamlit.io/).
-
-## Setup
-Ensure you have followed the steps listed above to start Chroma and upload the EIDC embeddings data. You can then stop the Chroma server and follow the steps below.
+This application run a retrieval augmented generative pipeline using [Haystack](https://haystack.deepset.ai/), [Chroma](https://www.trychroma.com/), [FastAPI](https://fastapi.tiangolo.com/) and a simple user interface using [Streamlit](https://streamlit.io/). The pipeline is defined in `pipelines/llama3.1-rag-pipe.yml` and can be seen below:
+![NER Mapping UI](/docs/img/llama3-rag-pipe.png)
 
 ## Ollama
-The demo application uses the RAG pipeline defined in `llama3-rag-pipe.yml` which makes use of the `llama3` model via [Ollama](https://ollama.com/). Check the ollama website for most recent setup guide but for brevity you can follow the following basic instructions:
+The RAG pipeline makes use of the `llama3.1` model via [Ollama](https://ollama.com/). Check the ollama website for most recent setup guide but for brevity you can follow the following basic instructions:
 
 Download and run the ollama installer shell script:
 ```shell
 curl -fsSL https://ollama.com/install.sh | sh
 ```
-Load the llama3 model into ollama and check it runs:
+Load the llama3.1 model into ollama and check it runs:
 ```shell
-ollama run llama3
+ollama run llama3.1
 ```
 > Use `/bye` to exit the ollama shell.
-The llama3 model should now be available via the ollama rest API at [http://localhost:11434](http://localhost:11434)
+The llama3.1 model should now be available via the ollama rest API at [http://localhost:11434](http://localhost:11434)
 
 ## Run Streamlit
 To start the streamlit UI:

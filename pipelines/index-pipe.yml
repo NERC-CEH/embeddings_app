@@ -1,6 +1,6 @@
 components:
   converter:
-    type: ingestion.converter.EIDCJSONToDocument
+    type: ingestion.converters.EIDCJSONToDocument
   fetcher:
     init_parameters:
       raise_on_failure: true

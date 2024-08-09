@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from rag.wrappers import IndexPipelineWrapper
+from ingestion.wrappers import IndexPipelineWrapper
 import logging
 import yaml
 

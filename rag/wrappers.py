@@ -1,39 +1,68 @@
 import logging
-import time
-
-import pandas as pd
 from haystack import Pipeline
+from typing import Optional, List
+import time
+import pandas as pd
+
+DEFAULT_URL = "https://catalogue.ceh.ac.uk/eidc/documents?page=1&rows=2000&term=state%3Apublished+AND+view%3Apublic+AND+recordType%3ADataset"
 
 
-class RagPipe:
+class PipelineWrapper:
     """
-    Wrapper class to provide easy access to a haystack pipeline.
+    Simple wrapper class for haystack pipelines
     """
 
-    def __init__(self, yml_file: str) -> None:
+    def __init__(self, yml_file: str, **config) -> None:
         """
         Constructor which takes a yaml file as a configuration for a haystack
         pipeline.
         """
         self.pipeline = None
         self.file = yml_file
+        self.config = config
         self.logger = logging.getLogger(__name__)
 
-    def load_rag_pipeline(self) -> Pipeline:
+    def load_pipeline(self) -> Pipeline:
         """
         Loads a pipeline for haystack from a yaml file.
         """
-        self.logger.info(f"Loading {self.file} as RAG pipeline source.")
+        self.logger.info(f"Loading {self.file} as pipeline source.")
         with open(self.file) as f:
-            return Pipeline.loads(f.read())
+            pipeline_config = f.read().format(**self.config)
+            self.logger.debug(pipeline_config)
+            return Pipeline.loads(pipeline_config)
 
-    def get_rag_pipeline(self) -> Pipeline:
+    def get_pipeline(self) -> Pipeline:
         """
         Retrieves the pipeline, or creates it if it doesn't exist.
         """
         if self.pipeline is None:
-            self.pipeline = self.load_rag_pipeline()
+            self.pipeline = self.load_pipeline()
         return self.pipeline
+
+
+class IndexPipelineWrapper(PipelineWrapper):
+    """
+    Warpper for an index pipeline.
+    """
+
+    def index(
+        self,
+        url: Optional[str] = DEFAULT_URL,
+        metadata_fields: Optional[List[str]] = None,
+    ):
+        self.get_pipeline().run(
+            data={
+                "fetcher": {"urls": [url]},
+                "converter": {"metadata_fields": metadata_fields},
+            }
+        )
+
+
+class RagPipelineWrapper(PipelineWrapper):
+    """
+    Wrapper class to provide easy access to a haystack pipeline.
+    """
 
     def query(self, query: str) -> tuple[str, pd.DataFrame]:
         """
@@ -41,7 +70,7 @@ class RagPipe:
         retrieved by the pipeline.
         """
         start = time.time()
-        results = self.get_rag_pipeline().run(
+        results = self.get_pipeline().run(
             {
                 "retriever": {"query": query},
                 "prompt_builder": {"query": query},
@@ -60,8 +89,11 @@ class RagPipe:
         Extracts the datasets from the pipelines return object and returns
         them in a dataframe with their scores.
         """
-        docs = [doc.meta["title"] for doc in answer.documents]
+        docs = [doc.meta["dataset_title"] for doc in answer.documents]
+        fields = [doc.meta["eidc_metadata_key"] for doc in answer.documents]
         scores = [doc.score for doc in answer.documents]
-        df = pd.DataFrame({"dataset": docs, "score": scores})
+        df = pd.DataFrame(
+            {"dataset": docs, "metadata": fields, "score": scores}
+        )
         df.sort_values("score", inplace=True, ascending=False)
         return df

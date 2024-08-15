@@ -4,7 +4,6 @@ import map.map_app
 
 
 class TestMapApp(TestCase):
-
     def test_calc_bounds(self):
         data = [[-9.0234247, 57.829], [-8.153736, 56.18254824]]
         result = map.map_app.calc_bounds(data)

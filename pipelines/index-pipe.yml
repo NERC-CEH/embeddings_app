@@ -1,0 +1,27 @@
+components:
+  converter:
+    type: ingestion.converter.EIDCJSONToDocument
+  fetcher:
+    init_parameters:
+      raise_on_failure: true
+      retry_attempts: 2
+      timeout: 3
+      user_agents:
+      - haystack/LinkContentFetcher/2.2.3
+    type: haystack.components.fetchers.link_content.LinkContentFetcher
+  writer:
+    init_parameters:
+      document_store:
+        init_parameters:
+          collection_name: {collection}
+          embedding_function: default
+          persist_path: {chroma_path}
+        type: haystack_integrations.document_stores.chroma.document_store.ChromaDocumentStore
+      policy: NONE
+    type: haystack.components.writers.document_writer.DocumentWriter
+connections:
+- receiver: converter.sources
+  sender: fetcher.streams
+- receiver: writer.documents
+  sender: converter.documents
+max_loops_allowed: 100

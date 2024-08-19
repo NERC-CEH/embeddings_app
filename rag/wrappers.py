@@ -84,6 +84,26 @@ class RagPipelineWrapper(PipelineWrapper):
         answer = results["answer_builder"]["answers"][0]
         return answer.data, self.extract_datasets(answer)
 
+    def query_get_contexts(self, query: str):
+        """
+        Queries the pipeline and return the generated answer and the datasets
+        retrieved by the pipeline.
+        """
+        start = time.time()
+        results = self.get_pipeline().run(
+            {
+                "retriever": {"query": query},
+                "prompt_builder": {"query": query},
+                "answer_builder": {"query": query},
+            },
+            include_outputs_from={"prompt_builder"},
+        )
+        end = time.time()
+        self.logger.info(f"Queried in {(end - start):.3f}s")
+        self.logger.debug(f"{results['prompt_builder']}")
+        answer = results["answer_builder"]["answers"][0]
+        return answer.data, answer.documents
+
     def extract_datasets(self, answer) -> pd.DataFrame:
         """
         Extracts the datasets from the pipelines return object and returns

@@ -8,7 +8,7 @@ components:
     init_parameters:
       generation_kwargs:
         num_ctx: 16384
-      model: mistral-nemo
+      model: llama3
       raw: false
       streaming_callback: null
       system_prompt: null

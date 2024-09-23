@@ -46,7 +46,8 @@ class EIDCJSONToDocument:
                             "eidc_metadata_key": key,
                         }
                         doc = Document(
-                            content=f"The dataset entitled \"{dataset['title']}\" contains the following information in it's \"{key}\" metadata field: {str(dataset[key])}",
+                            # content=f"The dataset entitled \"{dataset['title']}\" contains the following information in it's \"{key}\" metadata field: {str(dataset[key])}",
+                            content=f"{dataset['title']} {key}:\n{dataset[key]}",
                             meta=metadata,
                         )
                         documents.append(doc)
